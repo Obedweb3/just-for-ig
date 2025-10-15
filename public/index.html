@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Instagram Downloader</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f4f4f4; }
+    .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; }
+    input, button { width: 100%; padding: 10px; margin: 10px 0; }
+    .result img, .result video { max-width: 100%; margin-top: 10px; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>📸 Instagram Media Downloader</h2>
+    <input type="text" id="igUrl" placeholder="Paste Instagram post URL here..." />
+    <button onclick="handleDownload()">Download</button>
+    <p id="errorMsg" class="error"></p>
+    <div id="resultContainer"></div>
+  </div>
+
+  <script>
+    async function handleDownload() {
+      const url = document.getElementById("igUrl").value.trim();
+      const resultContainer = document.getElementById("resultContainer");
+      const errorMsg = document.getElementById("errorMsg");
+      resultContainer.innerHTML = '';
+      errorMsg.textContent = '';
+
+      if (!url) {
+        errorMsg.textContent = "❌ Please enter an Instagram post URL.";
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/instagram?url=${encodeURIComponent(url)}`);
+        const data = await res.json();
+
+        if (!data.success) throw new Error(data.message || "Failed to fetch media.");
+
+        const media = data.media;
+        resultContainer.innerHTML = `
+          <div class="result">
+            <h3>${media.title || 'Instagram Media'}</h3>
+            ${media.type === 'video'
+              ? `<video controls src="${media.url}"></video>`
+              : `<img src="${media.url}" alt="Instagram media" />`}
+            <a href="${media.url}" download target="_blank">⬇ Download</a>
+          </div>
+        `;
+      } catch (err) {
+        console.error(err);
+        errorMsg.textContent = "❌ " + err.message;
+      }
+    }
+  </script>
+</body>
+  </html>
